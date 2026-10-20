@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Поездки">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <title>Поездки</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="title" id="screenTitle">Поездка</div>
+    <button class="sync" id="syncBtn" type="button" aria-label="Синхронизировать">
+      <span class="dot" id="netDot"></span><span id="syncText">—</span>
+    </button>
+  </header>
+
+  <main>
+    <!-- ПОЕЗДКА -->
+    <section class="screen active" id="scr-trip">
+      <div class="card">
+        <div class="date-row">
+          <button class="icon-btn" id="datePrev" type="button" aria-label="Предыдущий день">‹</button>
+          <label class="date-box">
+            <span class="date-main" id="dateMain">—</span>
+            <span class="date-sub" id="dateSub"></span>
+            <input type="date" id="dateInput">
+          </label>
+          <button class="icon-btn" id="dateNext" type="button" aria-label="Следующий день">›</button>
+        </div>
+        <button class="chip-btn" id="todayBtn" type="button">Сегодня</button>
+        <div class="badge hidden" id="dayBadge"></div>
+      </div>
+
+      <div class="card">
+        <div class="label">Маршрут</div>
+        <button class="big-select" id="routeBtn" type="button">
+          <span id="routeText" class="placeholder">Выбрать маршрут</span>
+          <span class="chev">›</span>
+        </button>
+        <div class="row-2">
+          <button class="btn ghost" id="buildBtn" type="button">＋ Собрать</button>
+          <button class="btn ghost" id="clearRouteBtn" type="button">Очистить</button>
+        </div>
+
+        <label class="label" for="kmInput">Пробег за день, км</label>
+        <input class="big-input" id="kmInput" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+      </div>
+
+      <div class="card" id="fuelCard">
+        <div class="label">Заправка, ₽</div>
+        <input class="big-input" id="fuelInput" type="text" inputmode="decimal" placeholder="—" autocomplete="off">
+        <div class="seg" id="sourceSeg">
+          <button type="button" data-v="Топливная карта">Топливная карта</button>
+          <button type="button" data-v="Свои средства">Свои средства</button>
+        </div>
+        <div class="hint hidden" id="noSourceHint">В этом месяце в таблице нет колонки «Источник топлива».</div>
+      </div>
+
+      <details class="card" id="repairCard">
+        <summary class="label">Ремонт и комментарий</summary>
+        <div id="repairWrap">
+          <label class="label" for="repairInput">Ремонт, ₽</label>
+          <input class="big-input" id="repairInput" type="text" inputmode="decimal" placeholder="—" autocomplete="off">
+        </div>
+        <div id="commentWrap">
+          <label class="label" for="commentInput">Комментарий</label>
+          <textarea class="big-input" id="commentInput" rows="2"></textarea>
+        </div>
+        <div class="hint hidden" id="noRepairHint">В этом месяце в таблице нет колонок «Ремонт» и «Комментарий».</div>
+      </details>
+
+      <button class="btn primary huge" id="saveBtn" type="button">Сохранить</button>
+      <button class="btn danger" id="deleteBtn" type="button">Очистить день в таблице</button>
+    </section>
+
+    <!-- ЖУРНАЛ -->
+    <section class="screen" id="scr-log">
+      <div id="conflicts"></div>
+      <div id="logList" class="list"></div>
+    </section>
+
+    <!-- МЕСЯЦ -->
+    <section class="screen" id="scr-month">
+      <div class="card">
+        <div class="date-row">
+          <button class="icon-btn" id="monPrev" type="button" aria-label="Предыдущий месяц">‹</button>
+          <div class="date-box static"><span class="date-main" id="monName">—</span></div>
+          <button class="icon-btn" id="monNext" type="button" aria-label="Следующий месяц">›</button>
+        </div>
+      </div>
+      <div class="card" id="monSummary"></div>
+      <div class="hint pad">Цифры берутся из листа «Сводка за год» и пересчитываются формулами таблицы.</div>
+    </section>
+
+    <!-- НАСТРОЙКИ -->
+    <section class="screen" id="scr-settings">
+      <div class="card">
+        <label class="label" for="urlInput">Адрес Apps Script (…/exec)</label>
+        <input class="big-input small" id="urlInput" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off">
+        <label class="label" for="keyInput">Секретный ключ</label>
+        <input class="big-input small" id="keyInput" type="password" autocomplete="off" autocapitalize="off">
+        <button class="btn primary" id="saveSettingsBtn" type="button">Сохранить и проверить</button>
+        <div class="hint" id="settingsMsg"></div>
+      </div>
+      <div class="card">
+        <button class="btn ghost" id="reloadBtn" type="button">Обновить данные из таблицы</button>
+        <div class="hint" id="lastSync"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab active" data-scr="trip" type="button"><span>🚗</span>Поездка</button>
+    <button class="tab" data-scr="log" type="button"><span>📋</span>Журнал</button>
+    <button class="tab" data-scr="month" type="button"><span>📊</span>Месяц</button>
+    <button class="tab" data-scr="settings" type="button"><span>⚙️</span>Настройки</button>
+  </nav>
+
+  <!-- Выбор маршрута -->
+  <div class="sheet hidden" id="routeSheet">
+    <div class="sheet-head">
+      <button class="btn ghost" data-close type="button">Назад</button>
+      <div class="sheet-title">Маршрут</div>
+    </div>
+    <input class="big-input small" id="routeSearch" type="search" placeholder="Поиск: Тележко, Работа…" autocomplete="off">
+    <button class="btn primary" id="sheetBuildBtn" type="button">＋ Собрать новый маршрут</button>
+    <div class="list" id="routeList"></div>
+  </div>
+
+  <!-- Конструктор маршрута -->
+  <div class="sheet hidden" id="buildSheet">
+    <div class="sheet-head">
+      <button class="btn ghost" data-close type="button">Назад</button>
+      <div class="sheet-title">Собрать маршрут</div>
+    </div>
+    <div class="card">
+      <div class="build-route" id="buildRoute"><span class="placeholder">Нажимайте точки по порядку</span></div>
+      <div class="row-2">
+        <button class="btn ghost" id="buildUndo" type="button">⌫ Убрать</button>
+        <button class="btn ghost" id="buildReset" type="button">Сначала</button>
+      </div>
+    </div>
+    <div class="obj-grid" id="objGrid"></div>
+    <div class="card">
+      <div class="row-2">
+        <input class="big-input small" id="newObjInput" type="text" placeholder="Новый объект" autocomplete="off">
+        <button class="btn ghost" id="newObjBtn" type="button">Добавить</button>
+      </div>
+      <label class="label" for="buildKm">Расстояние маршрута, км</label>
+      <input class="big-input" id="buildKm" type="text" inputmode="decimal" placeholder="0" autocomplete="off">
+      <button class="btn primary huge" id="buildDone" type="button">Готово</button>
+      <div class="hint">Маршрут и новые объекты сохранятся на листе «Объекты» (без сети — как только она появится).</div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
